@@ -34,6 +34,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdio.h>
 #include "main.h"
 
 /** @addtogroup STM32L0xx_LL_Examples
@@ -77,6 +78,111 @@ void Configure_GPIO(void)
 }
 
 /**
+  * @brief  This function configures USARTx Instance.
+  * @note   This function is used to :
+  *         -1- Enable GPIO clock and configures the USART pins.
+  *         -2- Enable the USART peripheral clock and clock source.
+  *         -3- Configure USART functional parameters.
+  *         -4- Enable USART.
+  * @note   Peripheral configuration is minimal configuration from reset values.
+  *         Thus, some useless LL unitary functions calls below are provided as
+  *         commented examples - setting is default configuration from reset.
+  * @param  None
+  * @retval None
+  */
+void Configure_USART(void)
+{
+
+  /* (1) Enable GPIO clock and configures the USART pins *********************/
+
+  /* Enable the peripheral clock of GPIO Port */
+  USARTx_GPIO_CLK_ENABLE();
+
+  /* Configure Tx Pin as : Alternate function, High Speed, Push pull, Pull up */
+  LL_GPIO_SetPinMode(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_MODE_ALTERNATE);
+  USARTx_SET_TX_GPIO_AF();
+  LL_GPIO_SetPinSpeed(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  LL_GPIO_SetPinOutputType(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_OUTPUT_PUSHPULL);
+  LL_GPIO_SetPinPull(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_PULL_UP);
+
+  /* Configure Rx Pin as : Alternate function, High Speed, Push pull, Pull up */
+  LL_GPIO_SetPinMode(USARTx_RX_GPIO_PORT, USARTx_RX_PIN, LL_GPIO_MODE_ALTERNATE);
+  USARTx_SET_RX_GPIO_AF();
+  LL_GPIO_SetPinSpeed(USARTx_RX_GPIO_PORT, USARTx_RX_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  LL_GPIO_SetPinOutputType(USARTx_RX_GPIO_PORT, USARTx_RX_PIN, LL_GPIO_OUTPUT_PUSHPULL);
+  LL_GPIO_SetPinPull(USARTx_RX_GPIO_PORT, USARTx_RX_PIN, LL_GPIO_PULL_UP);
+
+  /* (2) Enable USART peripheral clock and clock source ***********************/
+  USARTx_CLK_ENABLE();
+
+  /* Set clock source */
+  USARTx_CLK_SOURCE();
+
+  /* (3) Configure USART functional parameters ********************************/
+
+  /* Disable USART prior modifying configuration registers */
+  /* Note: Commented as corresponding to Reset value */
+  // LL_USART_Disable(USARTx_INSTANCE);
+
+  /* TX/RX direction */
+  LL_USART_SetTransferDirection(USARTx_INSTANCE, LL_USART_DIRECTION_TX_RX);
+
+  /* 8 data bit, 1 start bit, 1 stop bit, no parity */
+  LL_USART_ConfigCharacter(USARTx_INSTANCE, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
+
+  /* No Hardware Flow control */
+  /* Reset value is LL_USART_HWCONTROL_NONE */
+  // LL_USART_SetHWFlowCtrl(USARTx_INSTANCE, LL_USART_HWCONTROL_NONE);
+
+  /* Oversampling by 16 */
+  /* Reset value is LL_USART_OVERSAMPLING_16 */
+  // LL_USART_SetOverSampling(USARTx_INSTANCE, LL_USART_OVERSAMPLING_16);
+
+  /* Set Baudrate to 115200 using APB frequency set to 16000000 Hz */
+  /* Frequency available for USART peripheral can also be calculated through LL RCC macro */
+  /* Ex :
+     Periphclk = LL_RCC_GetUSARTClockFreq(Instance); or LL_RCC_GetUARTClockFreq(Instance); depending on USART/UART instance
+
+     In this example, Peripheral Clock is expected to be equal to 16000000 Hz => equal to SystemCoreClock
+  */
+  LL_USART_SetBaudRate(USARTx_INSTANCE, SystemCoreClock, LL_USART_OVERSAMPLING_16, 115200);
+
+  /* (4) Enable USART *********************************************************/
+  LL_USART_Enable(USARTx_INSTANCE);
+
+  /* Polling USART initialisation */
+  while((!(LL_USART_IsActiveFlag_TEACK(USARTx_INSTANCE))) || (!(LL_USART_IsActiveFlag_REACK(USARTx_INSTANCE))))
+  {
+  }
+}
+
+uint8_t uart_send_char(uint8_t ch)
+{
+  /* Wait for TXE flag to be raised */
+  while (!LL_USART_IsActiveFlag_TXE(USARTx_INSTANCE))
+  {
+  }
+  LL_USART_TransmitData8(USARTx_INSTANCE, ch);
+  return ch;
+}
+
+/*
+important here:
+1. ENABLE Target Use MicroLIB
+2. DO NOT ENABLE MDK C/C++ GNU extensions Compiler control string
+*/
+#ifdef __GNUC__
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif
+
+PUTCHAR_PROTOTYPE
+{
+  return uart_send_char(ch);
+}
+
+/**
   * @brief  Main program
   * @param  None
   * @retval None
@@ -90,6 +196,11 @@ int main(void)
 
   /* Configure IO in output push-pull mode to drive external LED */
   Configure_GPIO();
+
+  /* Configure USARTx (USART IP configuration and related GPIO initialization) */
+  Configure_USART();
+
+  printf("build time: %s %s\n", __DATE__, __TIME__);
 
   /* Infinite loop */
   while (1)

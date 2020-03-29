@@ -80,6 +80,21 @@
 #define LED_GPIO_PORT                     GPIOB
 #define LED_GPIO_CLK_ENABLE()             LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB)  
 
+/* USART2 instance is used. (TX on PA.02, RX on PA.03)
+(please ensure that USART communication between the target MCU and ST-LINK MCU is properly enabled
+on HW board in order to support Virtual Com Port) */
+#define USARTx_INSTANCE               USART2
+#define USARTx_CLK_ENABLE()           LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2)
+#define USARTx_CLK_SOURCE()           LL_RCC_SetUSARTClockSource(LL_RCC_USART2_CLKSOURCE_PCLK1)
+
+#define USARTx_GPIO_CLK_ENABLE()      LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA)   /* Enable the peripheral clock of GPIOA */
+#define USARTx_TX_PIN                 LL_GPIO_PIN_2
+#define USARTx_TX_GPIO_PORT           GPIOA
+#define USARTx_SET_TX_GPIO_AF()       LL_GPIO_SetAFPin_0_7(GPIOA, LL_GPIO_PIN_2, LL_GPIO_AF_4)
+#define USARTx_RX_PIN                 LL_GPIO_PIN_3
+#define USARTx_RX_GPIO_PORT           GPIOA
+#define USARTx_SET_RX_GPIO_AF()       LL_GPIO_SetAFPin_0_7(GPIOA, LL_GPIO_PIN_3, LL_GPIO_AF_4)
+
 /**
   * @brief Virtual Key push-button (Arduino D2 connected to GND)
   */

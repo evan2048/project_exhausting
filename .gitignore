@@ -50,3 +50,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# add by evan.gu
+MDK-ARM/DebugConfig/
+MDK-ARM/EventRecorderStub.scvd
+MDK-ARM/Listings/
+MDK-ARM/Objects/
+MDK-ARM/RTE/
+MDK-ARM/STM32L031K6T6.uvguix.*
+MDK-ARM/STM32L031K6T6.uvoptx
